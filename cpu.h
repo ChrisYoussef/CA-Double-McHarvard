@@ -9,11 +9,11 @@
 #define DATA_MEM_SIZE 2048
 
 // SREG flag bit positions
-#define FLAG_C 0
-#define FLAG_V 1
+#define FLAG_C 4
+#define FLAG_V 3
 #define FLAG_N 2
-#define FLAG_S 3
-#define FLAG_Z 4
+#define FLAG_S 1
+#define FLAG_Z 0
 
 // Opcodes for Package 3
 typedef enum {
