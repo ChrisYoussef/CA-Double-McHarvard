@@ -110,6 +110,7 @@ void loadProgram(CPU *cpu, const char *filename) {
 
         uint16_t instruction = parseLine(line);
         instructionMemory[index++] = instruction;
+        cpu->instructionCount = (uint16_t)index; // Update instruction count as we load
 
         printf("Parsed instruction: 0x%04X from line: %s \n", instruction, line); // Debug: Print parsed instruction
     }
