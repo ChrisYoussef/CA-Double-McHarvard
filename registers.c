@@ -3,6 +3,11 @@
 #include <stdio.h>
 
 int8_t readRegister(CPU *cpu, uint8_t regNum) {
+    if (regNum >= NUM_REGS) {
+        printf("    [REG] ERROR: R%u is out of range\n", regNum);
+        return 0;
+    }
+
     return cpu->GPR[regNum];
 }
 
