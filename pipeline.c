@@ -112,9 +112,15 @@ void executeStage(CPU *cpu, ID_EX_Register *old_id_ex){
 
     if (cpu->branchTaken) {
         printBranchFlush(cpu);
+
+        // Update PC to branch/jump target immediately.
         cpu->PC = cpu->branchTarget;
-        cpu->skipFetch = 1;   // Fetch target in the next clock cycle
-        cpu->branchTaken = 0; // Reset branch flag
+
+        // This should mean "flush the wrong instructions from THIS cycle",
+        // not "skip fetch next cycle".
+        cpu->skipFetch = 1;
+
+        cpu->branchTaken = 0;
     }
 }
 
@@ -142,8 +148,6 @@ void simulateCycle(CPU *cpu) {
 
     cpu->stall = detectDataHazard(&old_if_id, &old_id_ex);
 
-    // Stages run in visible pipeline order. They still read old pipeline
-    // registers and write next-cycle registers, so commit happens below.
     fetchStage(cpu, &new_if_id);
     decodeStage(cpu, &old_if_id, &old_id_ex, &new_id_ex);
     executeStage(cpu, &old_id_ex);
@@ -153,8 +157,12 @@ void simulateCycle(CPU *cpu) {
     }
 
     if (cpu->skipFetch) {
+        // Flush instructions that entered after the branch/jump.
         new_if_id.valid = 0;
         new_id_ex.valid = 0;
+
+
+        cpu->skipFetch = 0;
     }
 
     cpu->if_id = new_if_id;
