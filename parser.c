@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include "cpu.h"
 
 #define MAX_LINE 100
 

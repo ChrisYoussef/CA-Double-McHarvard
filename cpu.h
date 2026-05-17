@@ -69,13 +69,6 @@ typedef struct {
     int8_t operand2;
 } ID_EX_Register;
 
-typedef struct {
-
-    int isHazard; // Flag to indicate if a hazard is detected
-    RegisterStage stage[NUM_REGS]; // Track which pipeline stage each register is in
-    int8_t forwardedValue[NUM_REGS]; // Store forwarded values for registers in EX stage
-
-}HazardUnit;
 
 // Full CPU state
 // NOTE: instructionMemory and dataMemory have been moved to memory.c
@@ -91,6 +84,12 @@ typedef struct {
     ID_EX_Register id_ex;
 
     uint16_t instructionCount; // number of loaded instructions
+
+    uint8_t stall;
+    uint8_t branchTaken;
+    uint16_t branchTarget;
+    uint8_t skipFetch;
+
 } CPU;
 
 // Memory arrays live in memory.c — visible to all other files via extern
@@ -116,6 +115,13 @@ DecodedInstruction decodeInstruction(uint16_t raw, uint16_t pcValue);
 void runPipeline(CPU *cpu);
 void simulateCycle(CPU *cpu);
 
+
+//hazards
+int detectDataHazard(CPU *cpu);
+int instructionWritesRegister(DecodedInstruction instr);
+int instructionReadsR1(DecodedInstruction instr);
+int instructionReadsR2(DecodedInstruction instr);
+
 // Stages
 void fetchStage(CPU *cpu);
 void decodeStage(CPU *cpu);
@@ -137,12 +143,26 @@ void updateSubFlags(CPU *cpu, int8_t a, int8_t b, int16_t result);
 uint16_t fetchInstruction(uint16_t address);
 int8_t loadData(uint16_t address);
 void storeData(uint16_t address, int8_t value);
+uint16_t getPC(CPU *cpu);
+void setPC(CPU *cpu, uint16_t value);
+void incrementPC(CPU *cpu);
 
 // Execution
 void executeInstruction(CPU *cpu, ID_EX_Register *stage);
 
 // Printing
 void printCycle(CPU *cpu);
+void printFetchStage(CPU *cpu, uint16_t pc, uint16_t rawInstruction);
+void printFetchStalled(CPU *cpu);
+void printFetchSkipped(CPU *cpu);
+void printFetchEmpty(CPU *cpu);
+void printDecodeStage(CPU *cpu, DecodedInstruction instr,
+                      int8_t operand1, int8_t operand2);
+void printDecodeEmpty(void);
+void printDecodeHazard(CPU *cpu);
+void printExecuteStage(CPU *cpu, ID_EX_Register *stage);
+void printExecuteEmpty(void);
+void printBranchFlush(CPU *cpu);
 void printRegisters(CPU *cpu);
 void printInstructionMemory();
 void printDataMemory();

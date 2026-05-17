@@ -37,8 +37,8 @@ int8_t readRegister (CPU *, uint8_t regNum);
 void   writeRegister(CPU *, uint8_t regNum, int8_t value);
 
 /* memory.c */
-int8_t loadData (CPU *, uint16_t address);
-void   storeData(CPU *, uint16_t address, int8_t value);
+int8_t loadData (uint16_t address);
+void   storeData(uint16_t address, int8_t value);
 
 /* ================================================================== */
 /*  0 – ADD  R1, R2  →  R1 = R1 + R2                                 */
@@ -229,7 +229,8 @@ void executeBEQZ(CPU *cpu, ID_EX_Register *stage)
 
     if (op1 == 0) {
         uint16_t target = (uint16_t)(stage->instr.pcValue + 1 + (int16_t)imm);
-        cpu->PC = target;
+        cpu->branchTaken = 1;
+        cpu->branchTarget = target;
         printf("BEQZ R%u(%d) == 0  →  TAKEN, PC = %u\n", r1, op1, target);
     } else {
         printf("BEQZ R%u(%d) != 0  →  NOT TAKEN\n", r1, op1);
@@ -249,7 +250,9 @@ void executeBR(CPU *cpu, ID_EX_Register *stage)
     uint8_t r2     = stage->instr.r2;
 
     uint16_t target = (uint16_t)(((uint8_t)op1 << 8) | (uint8_t)op2);
-    cpu->PC = target;
+
+    cpu->branchTaken = 1;
+    cpu->branchTarget = target;
 
     printf("BR   PC = R%u(0x%02X) || R%u(0x%02X)  →  PC = 0x%04X\n",
            r1, (uint8_t)op1, r2, (uint8_t)op2, target);
@@ -263,7 +266,7 @@ void executeBR(CPU *cpu, ID_EX_Register *stage)
 void executeLDR(CPU *cpu, ID_EX_Register *stage)
 {
     uint16_t addr   = (uint16_t)(uint8_t)stage->instr.imm;
-    int8_t   val    = loadData(cpu, addr);
+    int8_t   val    = loadData(addr);
     uint8_t  r1     = stage->instr.r1;
 
     writeRegister(cpu, r1, val);
@@ -282,7 +285,7 @@ void executeSTR(CPU *cpu, ID_EX_Register *stage)
     int8_t   op1  = stage->operand1;
     uint8_t  r1   = stage->instr.r1;
 
-    storeData(cpu, addr, op1);
+    storeData(addr, op1);
 
     printf("STR  MEM[%u] = R%u(%d)\n", addr, r1, op1);
 }
