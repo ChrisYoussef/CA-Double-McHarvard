@@ -118,15 +118,16 @@ void simulateCycle(CPU *cpu);
 
 
 //hazards
-int detectDataHazard(CPU *cpu);
+int detectDataHazard(IF_ID_Register *if_id, ID_EX_Register *id_ex);
 int instructionWritesRegister(DecodedInstruction instr);
 int instructionReadsR1(DecodedInstruction instr);
 int instructionReadsR2(DecodedInstruction instr);
 
 // Stages
-void fetchStage(CPU *cpu);
-void decodeStage(CPU *cpu);
-void executeStage(CPU *cpu);
+void fetchStage(CPU *cpu, IF_ID_Register *new_if_id);
+void decodeStage(CPU *cpu, IF_ID_Register *old_if_id,
+                 ID_EX_Register *old_id_ex, ID_EX_Register *new_id_ex);
+void executeStage(CPU *cpu, ID_EX_Register *old_id_ex);
 
 // Registers
 int8_t readRegister(CPU *cpu, uint8_t regNum);
@@ -159,7 +160,7 @@ void printFetchSkipped(CPU *cpu);
 void printFetchEmpty(CPU *cpu);
 void printDecodeStage(CPU *cpu, DecodedInstruction instr, int8_t operand1, int8_t operand2);
 void printDecodeEmpty(void);
-void printDecodeHazard(CPU *cpu);
+void printDecodeHazard(IF_ID_Register *if_id, ID_EX_Register *id_ex);
 void printExecuteStage(CPU *cpu, ID_EX_Register *stage);
 void printExecuteEmpty(void);
 void printBranchFlush(CPU *cpu);

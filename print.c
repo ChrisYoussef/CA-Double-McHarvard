@@ -108,18 +108,18 @@ void printDecodeEmpty(void)
     printf("  [ID] empty: no valid instruction in IF/ID\n");
 }
 
-void printDecodeHazard(CPU *cpu)
+void printDecodeHazard(IF_ID_Register *if_id, ID_EX_Register *id_ex)
 {
     DecodedInstruction current =
-        decodeInstruction(cpu->if_id.rawInstruction, cpu->if_id.pcValue);
+        decodeInstruction(if_id->rawInstruction, if_id->pcValue);
 
     printf("  [ID] stalled: data hazard while decoding ");
     printDecodedInstruction(current);
 
-    if (cpu->id_ex.valid)
+    if (id_ex->valid)
     {
         printf(" after ");
-        printDecodedInstruction(cpu->id_ex.instr);
+        printDecodedInstruction(id_ex->instr);
     }
 
     printf(" | inserted bubble into EX\n");

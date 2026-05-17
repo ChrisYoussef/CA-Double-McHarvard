@@ -5,14 +5,14 @@
 
 
 
-int detectDataHazard(CPU *cpu) {
-    if (!cpu->if_id.valid || !cpu->id_ex.valid)
+int detectDataHazard(IF_ID_Register *if_id, ID_EX_Register *id_ex) {
+    if (!if_id->valid || !id_ex->valid)
         return 0;
 
     DecodedInstruction current =
-        decodeInstruction(cpu->if_id.rawInstruction, cpu->if_id.pcValue);
+        decodeInstruction(if_id->rawInstruction, if_id->pcValue);
 
-    DecodedInstruction previous = cpu->id_ex.instr;
+    DecodedInstruction previous = id_ex->instr;
 
     if (!instructionWritesRegister(previous))
         return 0;
