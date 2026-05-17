@@ -89,7 +89,7 @@ typedef struct {
     uint8_t stall;
     uint8_t branchTaken;
     uint16_t branchTarget;
-    uint8_t skipFetch;
+    int flushThisCycle;
 
 } CPU;
 

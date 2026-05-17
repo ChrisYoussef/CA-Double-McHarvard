@@ -25,12 +25,7 @@
 
 void fetchStage(CPU *cpu, IF_ID_Register *new_if_id){
 
-    if (cpu->skipFetch) {
-        printFetchSkipped(cpu);
-        cpu->skipFetch = 0;
-        new_if_id->valid = 0;
-        return;
-    }
+
 
     if (cpu->stall) {
         // freeze fetch and PC
@@ -116,9 +111,8 @@ void executeStage(CPU *cpu, ID_EX_Register *old_id_ex){
         // Update PC to branch/jump target immediately.
         cpu->PC = cpu->branchTarget;
 
-        // This should mean "flush the wrong instructions from THIS cycle",
-        // not "skip fetch next cycle".
-        cpu->skipFetch = 1;
+        // Flush wrong IF/ID and decoded instruction from THIS same cycle.
+        cpu->flushThisCycle = 1;
 
         cpu->branchTaken = 0;
     }
@@ -129,8 +123,10 @@ void runPipeline(CPU *cpu) {
         simulateCycle(cpu);
 
         // Check for pipeline completion: no valid instructions in IF/ID and ID/EX
-        if (!cpu->if_id.valid && !cpu->id_ex.valid &&
-            !cpu->skipFetch && cpu->PC >= cpu->instructionCount) {
+        if (!cpu->if_id.valid &&
+            !cpu->id_ex.valid &&
+            !cpu->flushThisCycle &&
+            cpu->PC >= cpu->instructionCount) {
             break;
         }
     }
@@ -156,13 +152,12 @@ void simulateCycle(CPU *cpu) {
         new_if_id = old_if_id;
     }
 
-    if (cpu->skipFetch) {
-        // Flush instructions that entered after the branch/jump.
+    if (cpu->flushThisCycle) {
         new_if_id.valid = 0;
         new_id_ex.valid = 0;
 
-
-        cpu->skipFetch = 0;
+        cpu->flushThisCycle = 0;
+        cpu->stall = 0;
     }
 
     cpu->if_id = new_if_id;

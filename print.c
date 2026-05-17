@@ -4,38 +4,54 @@ static const char *opcodeName(uint8_t opcode)
 {
     switch ((Opcode)opcode)
     {
-        case OP_ADD:  return "ADD";
-        case OP_SUB:  return "SUB";
-        case OP_MUL:  return "MUL";
-        case OP_MOVI: return "MOVI";
-        case OP_BEQZ: return "BEQZ";
-        case OP_ANDI: return "ANDI";
-        case OP_EOR:  return "EOR";
-        case OP_BR:   return "BR";
-        case OP_SLC:  return "SLC";
-        case OP_SRC:  return "SRC";
-        case OP_LDR:  return "LDR";
-        case OP_STR:  return "STR";
-        default:      return "UNKNOWN";
+    case OP_ADD:
+        return "ADD";
+    case OP_SUB:
+        return "SUB";
+    case OP_MUL:
+        return "MUL";
+    case OP_MOVI:
+        return "MOVI";
+    case OP_BEQZ:
+        return "BEQZ";
+    case OP_ANDI:
+        return "ANDI";
+    case OP_EOR:
+        return "EOR";
+    case OP_BR:
+        return "BR";
+    case OP_SLC:
+        return "SLC";
+    case OP_SRC:
+        return "SRC";
+    case OP_LDR:
+        return "LDR";
+    case OP_STR:
+        return "STR";
+    default:
+        return "UNKNOWN";
     }
 }
 
 static void printDecodedInstruction(DecodedInstruction instr)
 {
-    printf("%s raw=0x%04X pc=%u", opcodeName(instr.opcode),
-           instr.raw, instr.pcValue);
-
+    /* Print assembly exactly as in instruction memory followed by raw and pc */
     if (instr.format == FORMAT_R)
     {
-        printf(" R1=R%u R2=R%u", instr.r1, instr.r2);
+        printf("%s R%u R%u, raw=0x%04X, pc = %u",
+               opcodeName(instr.opcode), instr.r1, instr.r2,
+               instr.raw, instr.pcValue);
     }
     else if (instr.format == FORMAT_I)
     {
-        printf(" R1=R%u IMM=%d", instr.r1, instr.imm);
+        printf("%s R%u %d, raw=0x%04X, pc = %u",
+               opcodeName(instr.opcode), instr.r1, instr.imm,
+               instr.raw, instr.pcValue);
     }
     else
     {
-        printf(" unknown-format");
+        printf("%s, raw=0x%04X, pc = %u",
+               opcodeName(instr.opcode), instr.raw, instr.pcValue);
     }
 }
 
@@ -188,8 +204,7 @@ void printInstructionMemory(CPU *cpu)
     for (int i = 0; i < cpu->instructionCount; i++)
     {
 
-            printf("[%d] = %u\n", i, instructionMemory[i]);
-        
+        printf("[%d] = %u\n", i, instructionMemory[i]);
     }
 }
 
