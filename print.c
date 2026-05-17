@@ -181,24 +181,23 @@ void printRegisters(CPU *cpu)
            getFlag(cpu, FLAG_Z));
 }
 
-void printInstructionMemory()
+void printInstructionMemory(CPU *cpu)
 {
     printf("\n===== Instruction Memory =====\n");
 
-    for (int i = 0; i < INSTR_MEM_SIZE; i++)
+    for (int i = 0; i < cpu->instructionCount; i++)
     {
-        if (instructionMemory[i] != 0)
-        {
+
             printf("[%d] = %u\n", i, instructionMemory[i]);
-        }
+        
     }
 }
 
-void printDataMemory()
+void printDataMemory(CPU *cpu)
 {
     printf("\n===== Data Memory =====\n");
 
-    for (int i = 0; i < DATA_MEM_SIZE; i++)
+    for (int i = 0; i < cpu->dataCount; i++)
     {
         printf("[%d] = %d\n", i, dataMemory[i]);
     }

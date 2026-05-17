@@ -84,6 +84,7 @@ typedef struct {
     ID_EX_Register id_ex;
 
     uint16_t instructionCount; // number of loaded instructions
+    uint16_t dataCount; // number of loaded data items
 
     uint8_t stall;
     uint8_t branchTaken;
@@ -142,7 +143,7 @@ void updateSubFlags(CPU *cpu, int8_t a, int8_t b, int16_t result);
 // Memory
 uint16_t fetchInstruction(uint16_t address);
 int8_t loadData(uint16_t address);
-void storeData(uint16_t address, int8_t value);
+void storeData(CPU *cpu, uint16_t address, int8_t value);
 uint16_t getPC(CPU *cpu);
 void setPC(CPU *cpu, uint16_t value);
 void incrementPC(CPU *cpu);
@@ -156,15 +157,14 @@ void printFetchStage(CPU *cpu, uint16_t pc, uint16_t rawInstruction);
 void printFetchStalled(CPU *cpu);
 void printFetchSkipped(CPU *cpu);
 void printFetchEmpty(CPU *cpu);
-void printDecodeStage(CPU *cpu, DecodedInstruction instr,
-                      int8_t operand1, int8_t operand2);
+void printDecodeStage(CPU *cpu, DecodedInstruction instr, int8_t operand1, int8_t operand2);
 void printDecodeEmpty(void);
 void printDecodeHazard(CPU *cpu);
 void printExecuteStage(CPU *cpu, ID_EX_Register *stage);
 void printExecuteEmpty(void);
 void printBranchFlush(CPU *cpu);
 void printRegisters(CPU *cpu);
-void printInstructionMemory();
-void printDataMemory();
+void printInstructionMemory(CPU *cpu);
+void printDataMemory(CPU *cpu);
 
 #endif
