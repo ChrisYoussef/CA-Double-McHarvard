@@ -58,7 +58,7 @@ uint16_t parseLine(char *line) {
     char arg1[10];
     char arg2[10];
 
-    int count = sscanf(line, "%s %s %s", mnemonic, arg1, arg2);
+    int count = sscanf(line, "%9s %9s %9s", mnemonic, arg1, arg2);
     if (count != 3) {
         printf("Error: Invalid instruction format: %s\n", line);
         exit(1);
@@ -120,29 +120,3 @@ void loadProgram(CPU *cpu, const char *filename) {
 
     printf("Loaded %d instructions into memory\n", index);
 }
-/*int main() {
-
-    // Instruction memory
-    uint16_t instructionMemory[1024] = {0};
-
-    // Load assembly program
-    loadProgram(instructionMemory, "program.txt");
-
-    printf("\n===== Instruction Memory =====\n");
-
-    // Print loaded instructions
-    for (int i = 0; i < 13; i++) {
-
-        printf("Instruction[%d] = ", i);
-
-        // Print as hexadecimal
-        printf("0x%04X", instructionMemory[i]);
-
-        // Print as decimal too
-        printf(" (%u)", instructionMemory[i]);
-
-        printf("\n");
-    }
-
-    return 0;
-}*/

@@ -30,6 +30,7 @@
  
  uint16_t instructionMemory[INSTR_MEM_SIZE]; // 1024 x 16-bit
  int8_t   dataMemory[DATA_MEM_SIZE];         // 2048 x 8-bit
+ uint8_t  dataMemoryWritten[DATA_MEM_SIZE];  // marks addresses written by STR
  
  /* ================================================================== */
  /*  CPU Initialisation                                                 */
@@ -40,6 +41,7 @@
      memset(cpu, 0, sizeof(CPU));
      memset(instructionMemory, 0, sizeof(instructionMemory));
      memset(dataMemory,        0, sizeof(dataMemory));
+     memset(dataMemoryWritten, 0, sizeof(dataMemoryWritten));
  }
  
  /* ================================================================== */
@@ -72,16 +74,6 @@
  /*  Instruction Memory                                                 */
  /* ================================================================== */
 
-uint16_t storeInstruction(uint16_t address)
- {
-   
-     if (!validateInstructionAddress(address))
-         return 0;
- 
-     return instructionMemory[address];
- } 
-
-
 uint16_t fetchInstruction(uint16_t address)
  {
    
@@ -110,6 +102,7 @@ uint16_t fetchInstruction(uint16_t address)
          return;
  
      dataMemory[address] = value;
+     dataMemoryWritten[address] = 1;
      cpu->dataCount++;
      printf("    [MEM] dataMemory[%u] <- %d\n", address, value);
  }

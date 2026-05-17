@@ -196,9 +196,13 @@ void printInstructionMemory(CPU *cpu)
 void printDataMemory(CPU *cpu)
 {
     printf("\n===== Data Memory =====\n");
+    (void)cpu;
 
-    for (int i = 0; i < cpu->dataCount; i++)
+    for (int i = 0; i < DATA_MEM_SIZE; i++)
     {
-        printf("[%d] = %d\n", i, dataMemory[i]);
+        if (dataMemoryWritten[i])
+        {
+            printf("[%d] = %d\n", i, dataMemory[i]);
+        }
     }
 }

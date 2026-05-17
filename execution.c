@@ -12,7 +12,7 @@
  *   executeInstruction()  ← dispatches to the functions above
  *
  * Flag helpers (setFlag, getFlag, updateNZFlags, updateAddFlags,
- * updateSubFlags, updateSignFlag) live in alu.c.
+ * updateSubFlags, updateSignFlag) live in flags.c.
  *
  * Memory helpers (loadData, storeData) live in memory.c.
  */

@@ -96,6 +96,7 @@ typedef struct {
 // Memory arrays live in memory.c — visible to all other files via extern
 extern uint16_t instructionMemory[INSTR_MEM_SIZE];
 extern int8_t   dataMemory[DATA_MEM_SIZE];
+extern uint8_t  dataMemoryWritten[DATA_MEM_SIZE];
 
 
 // =====================
