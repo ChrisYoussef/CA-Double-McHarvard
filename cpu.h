@@ -57,21 +57,24 @@ typedef struct {
 } ID_EX_Register;
 
 // Full CPU state
+// NOTE: instructionMemory and dataMemory have been moved to memory.c
+//       and are accessed through the memory functions below.
 typedef struct {
-    int8_t GPR[NUM_REGS];                       // R0 to R63
-    uint8_t SREG;                               // Status register
-    uint16_t PC;                                // Program counter
-
-    uint16_t instructionMemory[INSTR_MEM_SIZE]; // 1024 x 16-bit
-    int8_t dataMemory[DATA_MEM_SIZE];           // 2048 x 8-bit
+    int8_t GPR[NUM_REGS];   // R0 to R63
+    uint8_t SREG;            // Status register
+    uint16_t PC;             // Program counter
 
     uint32_t clockCycle;
 
     IF_ID_Register if_id;
     ID_EX_Register id_ex;
 
-    uint16_t instructionCount;                  // number of loaded instructions
+    uint16_t instructionCount; // number of loaded instructions
 } CPU;
+
+// Memory arrays live in memory.c — visible to all other files via extern
+extern uint16_t instructionMemory[INSTR_MEM_SIZE];
+extern int8_t   dataMemory[DATA_MEM_SIZE];
 
 
 // =====================
@@ -110,9 +113,9 @@ void updateAddFlags(CPU *cpu, int8_t a, int8_t b, int16_t result);
 void updateSubFlags(CPU *cpu, int8_t a, int8_t b, int16_t result);
 
 // Memory
-uint16_t fetchInstruction(CPU *cpu, uint16_t address);
-int8_t loadData(CPU *cpu, uint16_t address);
-void storeData(CPU *cpu, uint16_t address, int8_t value);
+uint16_t fetchInstruction(uint16_t address);
+int8_t loadData(uint16_t address);
+void storeData(uint16_t address, int8_t value);
 
 // Execution
 void executeInstruction(CPU *cpu, ID_EX_Register *stage);
@@ -120,7 +123,7 @@ void executeInstruction(CPU *cpu, ID_EX_Register *stage);
 // Printing
 void printCycle(CPU *cpu);
 void printRegisters(CPU *cpu);
-void printInstructionMemory(CPU *cpu);
-void printDataMemory(CPU *cpu);
+void printInstructionMemory();
+void printDataMemory();
 
 #endif
