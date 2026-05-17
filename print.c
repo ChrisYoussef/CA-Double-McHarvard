@@ -33,6 +33,12 @@ static const char *opcodeName(uint8_t opcode)
     }
 }
 
+static int instructionUsesUnsignedImmediate(DecodedInstruction instr)
+{
+    return instr.opcode == OP_LDR || instr.opcode == OP_STR ||
+           instr.opcode == OP_SLC || instr.opcode == OP_SRC;
+}
+
 static void printDecodedInstruction(DecodedInstruction instr)
 {
     /* Print assembly exactly as in instruction memory followed by raw and pc */
@@ -44,8 +50,12 @@ static void printDecodedInstruction(DecodedInstruction instr)
     }
     else if (instr.format == FORMAT_I)
     {
+        int immediate = instructionUsesUnsignedImmediate(instr)
+                      ? (int)(instr.imm & 0x3F)
+                      : (int)instr.imm;
+
         printf("%s R%u %d, raw=0x%04X, pc = %u",
-               opcodeName(instr.opcode), instr.r1, instr.imm,
+               opcodeName(instr.opcode), instr.r1, immediate,
                instr.raw, instr.pcValue);
     }
     else
@@ -110,8 +120,16 @@ void printDecodeStage(CPU *cpu, DecodedInstruction instr,
     }
     else if (instr.format == FORMAT_I)
     {
-        printf("  [ID] output: operand1=R%u(%d), immediate=%d\n",
-               instr.r1, operand1, operand2);
+        if (instructionUsesUnsignedImmediate(instr))
+        {
+            printf("  [ID] output: operand1=R%u(%d), immediate=%u\n",
+                   instr.r1, operand1, (unsigned)(operand2 & 0x3F));
+        }
+        else
+        {
+            printf("  [ID] output: operand1=R%u(%d), immediate=%d\n",
+                   instr.r1, operand1, operand2);
+        }
     }
     else
     {
@@ -155,8 +173,16 @@ void printExecuteStage(CPU *cpu, ID_EX_Register *stage)
     }
     else if (stage->instr.format == FORMAT_I)
     {
-        printf(" | operand1=%d immediate=%d\n",
-               stage->operand1, stage->operand2);
+        if (instructionUsesUnsignedImmediate(stage->instr))
+        {
+            printf(" | operand1=%d immediate=%u\n",
+                   stage->operand1, (unsigned)(stage->operand2 & 0x3F));
+        }
+        else
+        {
+            printf(" | operand1=%d immediate=%d\n",
+                   stage->operand1, stage->operand2);
+        }
     }
     else
     {

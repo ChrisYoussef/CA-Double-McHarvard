@@ -61,7 +61,8 @@ DecodedInstruction decodeInstruction(uint16_t raw, uint16_t pcValue) {
     else if (format == FORMAT_I) {
         decoded.r2 = 0;  
 
-        if (decoded.opcode == OP_SLC || decoded.opcode == OP_SRC) {
+        if (decoded.opcode == OP_SLC || decoded.opcode == OP_SRC ||
+            decoded.opcode == OP_LDR || decoded.opcode == OP_STR) {
             decoded.imm = (int8_t)lowest_6_bits; 
         } else {
             decoded.imm = signExtend6Bit(lowest_6_bits);

@@ -20,6 +20,34 @@ int parseImmediate(char *immStr) {
     return atoi(immStr);
 }
 
+static int isRTypeOpcode(int opcode) {
+    return opcode == OP_ADD || opcode == OP_SUB || opcode == OP_MUL ||
+           opcode == OP_EOR || opcode == OP_BR;
+}
+
+static void validateRegister(int reg, const char *token) {
+    if (reg < 0 || reg >= NUM_REGS) {
+        printf("Error: Invalid register %s. Expected R0 to R63\n", token);
+        exit(1);
+    }
+}
+
+static void validateSignedImm6(int imm, const char *mnemonic) {
+    if (imm < -32 || imm > 31) {
+        printf("Error: Immediate %d out of range for %s. Expected -32 to 31\n",
+               imm, mnemonic);
+        exit(1);
+    }
+}
+
+static void validateUnsignedImm6(int imm, const char *mnemonic) {
+    if (imm < 0 || imm > 63) {
+        printf("Error: Immediate %d out of range for %s. Expected 0 to 63\n",
+               imm, mnemonic);
+        exit(1);
+    }
+}
+
 // ============================
 // Encode instruction (core)
 // ============================
@@ -67,10 +95,12 @@ uint16_t parseLine(char *line) {
     int opcode = getOpcode(mnemonic);
 
     // R-TYPE instructions
-    if (opcode == OP_ADD || opcode == OP_SUB || opcode == OP_MUL || opcode == OP_EOR || opcode == OP_BR) {
+    if (isRTypeOpcode(opcode)) {
 
         int r1 = parseRegister(arg1);
         int r2 = parseRegister(arg2);
+        validateRegister(r1, arg1);
+        validateRegister(r2, arg2);
 
         return encodeInstructionBits(opcode, r1, r2);
     }
@@ -78,6 +108,14 @@ uint16_t parseLine(char *line) {
     // I-TYPE instructions
     int r1 = parseRegister(arg1);
     int imm = parseImmediate(arg2);
+    validateRegister(r1, arg1);
+
+    if (opcode == OP_LDR || opcode == OP_STR ||
+        opcode == OP_SLC || opcode == OP_SRC) {
+        validateUnsignedImm6(imm, mnemonic);
+    } else {
+        validateSignedImm6(imm, mnemonic);
+    }
 
     return encodeInstructionBits(opcode, r1, imm);
 }
