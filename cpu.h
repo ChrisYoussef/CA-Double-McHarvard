@@ -31,6 +31,18 @@ typedef enum {
     OP_STR  = 11
 } Opcode;
 
+typedef enum {
+    FORMAT_R,
+    FORMAT_I,
+    FORMAT_UNKNOWN
+} InstructionFormat;
+
+typedef enum{
+    IF,
+    ID,
+    EX
+}RegisterStage;
+
 // Decoded instruction after ID stage
 typedef struct {
     uint16_t raw;      // full 16-bit instruction
@@ -39,6 +51,7 @@ typedef struct {
     uint8_t r2;        // bits 5-0 if R-format
     int8_t imm;        // signed immediate if I-format
     uint16_t pcValue;  // PC address of this instruction
+    InstructionFormat format; // R or I format
 } DecodedInstruction;
 
 // IF/ID pipeline register
@@ -55,6 +68,14 @@ typedef struct {
     int8_t operand1;
     int8_t operand2;
 } ID_EX_Register;
+
+typedef struct {
+
+    int isHazard; // Flag to indicate if a hazard is detected
+    RegisterStage stage[NUM_REGS]; // Track which pipeline stage each register is in
+    int8_t forwardedValue[NUM_REGS]; // Store forwarded values for registers in EX stage
+
+}HazardUnit;
 
 // Full CPU state
 typedef struct {

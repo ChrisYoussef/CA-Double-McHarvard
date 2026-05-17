@@ -1,11 +1,7 @@
-#include "CPU.h"
+#include "cpu.h"
 
 
-typedef enum {
-    FORMAT_R,
-    FORMAT_I,
-    FORMAT_UNKNOWN
-} InstructionFormat;
+
 
 static InstructionFormat getFormat(uint8_t opcode) {
     switch (opcode) {
@@ -56,6 +52,7 @@ DecodedInstruction decodeInstruction(uint16_t raw, uint16_t pcValue) {
     uint8_t lowest_6_bits = raw & 0x3F;
 
     InstructionFormat format = getFormat(decoded.opcode);
+    decoded.format = format;
 
     if (format == FORMAT_R) {
         decoded.r2 = lowest_6_bits;
