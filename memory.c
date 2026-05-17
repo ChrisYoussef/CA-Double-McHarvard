@@ -71,8 +71,18 @@
  /* ================================================================== */
  /*  Instruction Memory                                                 */
  /* ================================================================== */
+
+uint16_t storeInstruction(uint16_t address)
+ {
+   
+     if (!validateInstructionAddress(address))
+         return 0;
  
- uint16_t fetchInstruction(uint16_t address)
+     return instructionMemory[address];
+ } 
+
+
+uint16_t fetchInstruction(uint16_t address)
  {
    
      if (!validateInstructionAddress(address))
@@ -94,12 +104,13 @@
      return dataMemory[address];
  }
  
- void storeData(uint16_t address, int8_t value)
+ void storeData(CPU *cpu,  uint16_t address, int8_t value)
  {
      if (!validateDataAddress(address))
          return;
  
      dataMemory[address] = value;
+     cpu->dataCount++;
      printf("    [MEM] dataMemory[%u] <- %d\n", address, value);
  }
  

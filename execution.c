@@ -38,7 +38,7 @@ void   writeRegister(CPU *, uint8_t regNum, int8_t value);
 
 /* memory.c */
 int8_t loadData (uint16_t address);
-void   storeData(uint16_t address, int8_t value);
+void   storeData(CPU *cpu, uint16_t address, int8_t value);
 
 /* ================================================================== */
 /*  0 – ADD  R1, R2  →  R1 = R1 + R2                                 */
@@ -285,7 +285,7 @@ void executeSTR(CPU *cpu, ID_EX_Register *stage)
     int8_t   op1  = stage->operand1;
     uint8_t  r1   = stage->instr.r1;
 
-    storeData(addr, op1);
+    storeData(cpu, addr, op1);
 
     printf("STR  MEM[%u] = R%u(%d)\n", addr, r1, op1);
 }

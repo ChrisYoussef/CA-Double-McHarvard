@@ -7,7 +7,7 @@ int main(void) {
     loadProgram(&cpu, "program.txt");
     runPipeline(&cpu);
     printRegisters(&cpu);
-    printInstructionMemory();
-    printDataMemory();
+    printInstructionMemory(&cpu);
+    printDataMemory(&cpu);
     return 0;
 }
