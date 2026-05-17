@@ -125,3 +125,14 @@ void updateSubFlags(CPU *cpu, int8_t a, int8_t b, int16_t result)
 
 // Other flags (MUL, ANDI, EOR, SLC, and SRC) will use updateNZFlags() directly from the instruction implementation since they only need N and Z.
 
+//////////////////////////////////
+
+void printSREG(CPU *cpu) {
+    printf("SREG = 0x%02X (C=%u V=%u N=%u S=%u Z=%u)\n",
+           cpu->SREG,
+           getFlag(cpu, FLAG_C),
+           getFlag(cpu, FLAG_V),
+           getFlag(cpu, FLAG_N),
+           getFlag(cpu, FLAG_S),
+           getFlag(cpu, FLAG_Z));
+}

@@ -1,0 +1,3 @@
+MOVI R1 -1
+MOVI R2 1
+ADD R1 R2

@@ -167,5 +167,6 @@ void printBranchFlush(CPU *cpu);
 void printRegisters(CPU *cpu);
 void printInstructionMemory(CPU *cpu);
 void printDataMemory(CPU *cpu);
+void printSREG(CPU *cpu);
 
 #endif
