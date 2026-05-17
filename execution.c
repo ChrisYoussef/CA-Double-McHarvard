@@ -265,7 +265,7 @@ void executeBR(CPU *cpu, ID_EX_Register *stage)
 /* ================================================================== */
 void executeLDR(CPU *cpu, ID_EX_Register *stage)
 {
-    uint16_t addr   = (uint16_t)(uint8_t)stage->instr.imm;
+    uint16_t addr = stage->instr.imm & 0x3F;
     int8_t   val    = loadData(addr);
     uint8_t  r1     = stage->instr.r1;
 
@@ -281,7 +281,7 @@ void executeLDR(CPU *cpu, ID_EX_Register *stage)
 /* ================================================================== */
 void executeSTR(CPU *cpu, ID_EX_Register *stage)
 {
-    uint16_t addr = (uint16_t)(uint8_t)stage->instr.imm;
+    uint16_t addr = stage->instr.imm & 0x3F;
     int8_t   op1  = stage->operand1;
     uint8_t  r1   = stage->instr.r1;
 
