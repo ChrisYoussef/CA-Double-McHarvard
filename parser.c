@@ -6,22 +6,6 @@
 
 #define MAX_LINE 100
 
-// ===== OPCODES =====
-enum {
-    ADD = 0,
-    SUB,
-    MUL,
-    MOVI,
-    BEQZ,
-    ANDI,
-    EOR,
-    BR,
-    SLC,
-    SRC,
-    LDR,
-    STR
-};
-
 // ============================
 // Convert "R5" → 5
 // ============================
@@ -39,7 +23,7 @@ int parseImmediate(char *immStr) {
 // ============================
 // Encode instruction (core)
 // ============================
-uint16_t encodeInstruction(int opcode, int r1, int field) {
+static uint16_t encodeInstructionBits(int opcode, int r1, int field) {
     return (opcode << 12) | (r1 << 6) | (field & 0x3F);
 }
 
@@ -48,18 +32,18 @@ uint16_t encodeInstruction(int opcode, int r1, int field) {
 // ============================
 int getOpcode(char *mnemonic) {
 
-    if (strcmp(mnemonic, "ADD") == 0) return ADD;
-    if (strcmp(mnemonic, "SUB") == 0) return SUB;
-    if (strcmp(mnemonic, "MUL") == 0) return MUL;
-    if (strcmp(mnemonic, "MOVI") == 0) return MOVI;
-    if (strcmp(mnemonic, "BEQZ") == 0) return BEQZ;
-    if (strcmp(mnemonic, "ANDI") == 0) return ANDI;
-    if (strcmp(mnemonic, "EOR") == 0) return EOR;
-    if (strcmp(mnemonic, "BR") == 0) return BR;
-    if (strcmp(mnemonic, "SLC") == 0) return SLC;
-    if (strcmp(mnemonic, "SRC") == 0) return SRC;
-    if (strcmp(mnemonic, "LDR") == 0) return LDR;
-    if (strcmp(mnemonic, "STR") == 0) return STR;
+    if (strcmp(mnemonic, "ADD") == 0) return OP_ADD;
+    if (strcmp(mnemonic, "SUB") == 0) return OP_SUB;
+    if (strcmp(mnemonic, "MUL") == 0) return OP_MUL;
+    if (strcmp(mnemonic, "MOVI") == 0) return OP_MOVI;
+    if (strcmp(mnemonic, "BEQZ") == 0) return OP_BEQZ;
+    if (strcmp(mnemonic, "ANDI") == 0) return OP_ANDI;
+    if (strcmp(mnemonic, "EOR") == 0) return OP_EOR;
+    if (strcmp(mnemonic, "BR") == 0) return OP_BR;
+    if (strcmp(mnemonic, "SLC") == 0) return OP_SLC;
+    if (strcmp(mnemonic, "SRC") == 0) return OP_SRC;
+    if (strcmp(mnemonic, "LDR") == 0) return OP_LDR;
+    if (strcmp(mnemonic, "STR") == 0) return OP_STR;
 
     printf("Error: Unknown instruction %s\n", mnemonic);
     exit(1);
@@ -75,29 +59,33 @@ uint16_t parseLine(char *line) {
     char arg2[10];
 
     int count = sscanf(line, "%s %s %s", mnemonic, arg1, arg2);
+    if (count != 3) {
+        printf("Error: Invalid instruction format: %s\n", line);
+        exit(1);
+    }
 
     int opcode = getOpcode(mnemonic);
 
     // R-TYPE instructions
-    if (opcode == ADD || opcode == SUB || opcode == MUL || opcode == EOR || opcode == BR) {
+    if (opcode == OP_ADD || opcode == OP_SUB || opcode == OP_MUL || opcode == OP_EOR || opcode == OP_BR) {
 
         int r1 = parseRegister(arg1);
         int r2 = parseRegister(arg2);
 
-        return encodeInstruction(opcode, r1, r2);
+        return encodeInstructionBits(opcode, r1, r2);
     }
 
     // I-TYPE instructions
     int r1 = parseRegister(arg1);
     int imm = parseImmediate(arg2);
 
-    return encodeInstruction(opcode, r1, imm);
+    return encodeInstructionBits(opcode, r1, imm);
 }
 
 // ============================
 // Load full program into memory
 // ============================
-void loadProgram(uint16_t instructionMemory[], const char *filename) {
+void loadProgram(CPU *cpu, const char *filename) {
 
     FILE *file = fopen(filename, "r");
 
@@ -114,8 +102,13 @@ void loadProgram(uint16_t instructionMemory[], const char *filename) {
         // Skip empty lines
         if (strlen(line) <= 1) continue;
 
-        uint16_t instruction = parseLine(line);
+        if (index >= INSTR_MEM_SIZE) {
+            printf("Error: Program too large for instruction memory\n");
+            fclose(file);
+            exit(1);
+        }
 
+        uint16_t instruction = parseLine(line);
         instructionMemory[index++] = instruction;
 
         printf("Parsed instruction: 0x%04X from line: %s \n", instruction, line); // Debug: Print parsed instruction
@@ -123,6 +116,7 @@ void loadProgram(uint16_t instructionMemory[], const char *filename) {
 
 
     fclose(file);
+    cpu->instructionCount = (uint16_t)index;
 
     printf("Loaded %d instructions into memory\n", index);
 }

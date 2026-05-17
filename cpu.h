@@ -106,7 +106,6 @@ void initCPU(CPU *cpu);
 
 // Parser / loader
 void loadProgram(CPU *cpu, const char *filename);
-uint16_t encodeInstruction(char *line);
 
 // Decode
 DecodedInstruction decodeInstruction(uint16_t raw, uint16_t pcValue);
