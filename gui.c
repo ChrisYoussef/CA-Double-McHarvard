@@ -11,23 +11,59 @@
 #define IDC_RELOAD 105
 #define IDC_CLEAR 106
 #define IDC_UPLOAD 107
+#define IDC_PIPELINE_OUTPUT 108
+#define IDC_REGISTERS_OUTPUT 109
+#define IDC_INSTRUCTION_OUTPUT 110
+#define IDC_DATA_OUTPUT 111
 
 static const char *PROGRAM_FILE = "program.txt";
 static const char *OUTPUT_FILE = "gui_output.txt";
 static const char *SIMULATOR_EXE = ".\\simulator.exe";
 
 static HWND editorBox;
-static HWND outputBox;
+static HWND pipelineOutputBox;
+static HWND registersOutputBox;
+static HWND instructionOutputBox;
+static HWND dataOutputBox;
 static HWND runButton;
 static HWND uploadButton;
 static HWND saveButton;
 static HWND reloadButton;
 static HWND clearButton;
 static HFONT fixedFont;
+static HFONT uiFont;
+static HFONT labelFont;
+static HBRUSH backgroundBrush;
+static HBRUSH editBrush;
+
+static const COLORREF BACKGROUND_COLOR = RGB(244, 247, 251);
+static const COLORREF BORDER_COLOR = RGB(207, 216, 228);
+static const COLORREF LABEL_COLOR = RGB(37, 50, 69);
+static const COLORREF EDIT_COLOR = RGB(252, 253, 255);
+static const COLORREF TEXT_COLOR = RGB(24, 31, 42);
+static const COLORREF EDITOR_PANEL_COLOR = RGB(232, 244, 255);
+static const COLORREF PIPELINE_PANEL_COLOR = RGB(237, 247, 239);
+static const COLORREF REGISTERS_PANEL_COLOR = RGB(255, 246, 226);
+static const COLORREF INSTRUCTION_PANEL_COLOR = RGB(242, 237, 255);
+static const COLORREF DATA_PANEL_COLOR = RGB(255, 236, 235);
+static const COLORREF EDITOR_ACCENT_COLOR = RGB(43, 119, 191);
+static const COLORREF PIPELINE_ACCENT_COLOR = RGB(34, 139, 84);
+static const COLORREF REGISTERS_ACCENT_COLOR = RGB(190, 122, 18);
+static const COLORREF INSTRUCTION_ACCENT_COLOR = RGB(103, 76, 194);
+static const COLORREF DATA_ACCENT_COLOR = RGB(198, 67, 56);
 
 static void showMessage(HWND hwnd, const char *text)
 {
     MessageBoxA(hwnd, text, "Simulator GUI", MB_OK | MB_ICONINFORMATION);
+}
+
+static void setOutputFields(const char *pipeline, const char *registers,
+                            const char *instruction, const char *data)
+{
+    SetWindowTextA(pipelineOutputBox, pipeline ? pipeline : "");
+    SetWindowTextA(registersOutputBox, registers ? registers : "");
+    SetWindowTextA(instructionOutputBox, instruction ? instruction : "");
+    SetWindowTextA(dataOutputBox, data ? data : "");
 }
 
 static char *readEntireFile(const char *path, DWORD *sizeOut)
@@ -107,7 +143,7 @@ static void uploadTextFile(HWND hwnd)
     }
 
     SetWindowTextA(editorBox, text);
-    SetWindowTextA(outputBox, "Uploaded text file. Press Run to simulate it.");
+    setOutputFields("Uploaded text file. Press Run to simulate it.", "", "", "");
     GlobalFree(text);
 }
 
@@ -131,16 +167,55 @@ static int saveEditorToProgram(HWND hwnd)
     return 1;
 }
 
-static void loadOutputPane(void)
+static char *copyRange(const char *start, const char *end)
+{
+    size_t length = (size_t)(end - start);
+    char *copy = (char *)GlobalAlloc(GPTR, length + 1);
+    if (!copy)
+        return NULL;
+
+    memcpy(copy, start, length);
+    copy[length] = '\0';
+    return copy;
+}
+
+static void loadOutputFields(void)
 {
     DWORD size = 0;
     char *text = readEntireFile(OUTPUT_FILE, &size);
     if (!text) {
-        SetWindowTextA(outputBox, "No output yet.");
+        setOutputFields("No output yet.", "", "", "");
         return;
     }
 
-    SetWindowTextA(outputBox, text);
+    const char *registersHeader = strstr(text, "===== Registers =====");
+    const char *instructionHeader = strstr(text, "===== Instruction Memory =====");
+    const char *dataHeader = strstr(text, "===== Data Memory =====");
+
+    const char *pipelineStart = text;
+    const char *pipelineEnd = registersHeader ? registersHeader : text + size;
+    const char *registersEnd = instructionHeader ? instructionHeader : text + size;
+    const char *instructionEnd = dataHeader ? dataHeader : text + size;
+
+    char *pipeline = copyRange(pipelineStart, pipelineEnd);
+    char *registers = registersHeader ? copyRange(registersHeader, registersEnd) : NULL;
+    char *instruction = instructionHeader ? copyRange(instructionHeader, instructionEnd) : NULL;
+    char *data = dataHeader ? copyRange(dataHeader, text + size) : NULL;
+
+    if (!pipeline) {
+        setOutputFields("Could not allocate memory for output.", "", "", "");
+    } else {
+        setOutputFields(pipeline, registers, instruction, data);
+    }
+
+    if (pipeline)
+        GlobalFree(pipeline);
+    if (registers)
+        GlobalFree(registers);
+    if (instruction)
+        GlobalFree(instruction);
+    if (data)
+        GlobalFree(data);
     GlobalFree(text);
 }
 
@@ -181,11 +256,11 @@ static void runSimulator(HWND hwnd)
         snprintf(message, sizeof(message),
                  "Could not run simulator.exe.\r\n\r\nWindows error code: %lu\r\n\r\nMake sure simulator.exe is in the same folder as simulator_gui.exe.",
                  GetLastError());
-        SetWindowTextA(outputBox, message);
+        setOutputFields(message, "", "", "");
         return;
     }
 
-    SetWindowTextA(outputBox, "Running...");
+    setOutputFields("Running...", "", "", "");
     EnableWindow(runButton, FALSE);
     WaitForSingleObject(pi.hProcess, INFINITE);
 
@@ -195,16 +270,20 @@ static void runSimulator(HWND hwnd)
     CloseHandle(pi.hProcess);
     EnableWindow(runButton, TRUE);
 
-    loadOutputPane();
+    loadOutputFields();
     if (exitCode != 0)
-        showMessage(hwnd, "The simulator finished with an error. Check the output pane.");
+        showMessage(hwnd, "The simulator finished with an error. Check the output fields.");
 }
 
 static HWND makeButton(HWND hwnd, const char *text, int id)
 {
-    return CreateWindowA("BUTTON", text, WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
-                         0, 0, 90, 28, hwnd, (HMENU)(INT_PTR)id,
-                         GetModuleHandle(NULL), NULL);
+    HWND button = CreateWindowA("BUTTON", text,
+                                WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
+                                0, 0, 90, 32, hwnd, (HMENU)(INT_PTR)id,
+                                GetModuleHandle(NULL), NULL);
+
+    SendMessageA(button, WM_SETFONT, (WPARAM)uiFont, TRUE);
+    return button;
 }
 
 static HWND makeEdit(HWND hwnd, int id, DWORD extraStyle)
@@ -216,7 +295,29 @@ static HWND makeEdit(HWND hwnd, int id, DWORD extraStyle)
         0, 0, 100, 100, hwnd, (HMENU)(INT_PTR)id, GetModuleHandle(NULL), NULL);
 
     SendMessageA(edit, WM_SETFONT, (WPARAM)fixedFont, TRUE);
+    SendMessageA(edit, EM_SETMARGINS, EC_LEFTMARGIN | EC_RIGHTMARGIN,
+                 MAKELPARAM(8, 8));
     return edit;
+}
+
+static void drawPanel(HDC hdc, RECT rect, COLORREF fillColor, COLORREF accentColor)
+{
+    HPEN borderPen = CreatePen(PS_SOLID, 1, BORDER_COLOR);
+    HBRUSH panelBrush = CreateSolidBrush(fillColor);
+    HBRUSH accentBrush = CreateSolidBrush(accentColor);
+    RECT accent = { rect.left + 12, rect.top + 8,
+                    rect.left + 52, rect.top + 13 };
+    HPEN oldPen = (HPEN)SelectObject(hdc, borderPen);
+    HBRUSH oldBrush = (HBRUSH)SelectObject(hdc, panelBrush);
+
+    RoundRect(hdc, rect.left, rect.top, rect.right, rect.bottom, 12, 12);
+    FillRect(hdc, &accent, accentBrush);
+
+    SelectObject(hdc, oldBrush);
+    SelectObject(hdc, oldPen);
+    DeleteObject(accentBrush);
+    DeleteObject(panelBrush);
+    DeleteObject(borderPen);
 }
 
 static void layout(HWND hwnd)
@@ -224,25 +325,51 @@ static void layout(HWND hwnd)
     RECT rc;
     GetClientRect(hwnd, &rc);
 
-    int padding = 12;
-    int toolbarHeight = 42;
-    int labelHeight = 22;
-    int gap = 10;
+    int padding = 16;
+    int toolbarHeight = 48;
+    int labelHeight = 26;
+    int gap = 12;
+    int panelInset = 10;
     int width = rc.right - rc.left;
     int height = rc.bottom - rc.top;
     int paneTop = padding + toolbarHeight + labelHeight;
     int paneHeight = height - paneTop - padding;
-    int paneWidth = (width - padding * 2 - gap) / 2;
-    int rightX = padding + paneWidth + gap;
+    int topPaneWidth = (width - padding * 2 - gap) / 2;
+    int rightX = padding + topPaneWidth + gap;
+    int topPaneHeight = (paneHeight * 3) / 5;
+    int lowerLabelTop = paneTop + topPaneHeight + gap;
+    int lowerPaneTop = lowerLabelTop + labelHeight;
+    int lowerPaneHeight = height - lowerPaneTop - padding;
+    int lowerWidth = width - padding * 2;
+    int lowerColumnGap = 12;
+    int lowerColumnWidth = (lowerWidth - lowerColumnGap * 2) / 3;
 
-    MoveWindow(runButton, padding, padding, 90, 28, TRUE);
-    MoveWindow(uploadButton, padding + 98, padding, 130, 28, TRUE);
-    MoveWindow(saveButton, padding + 236, padding, 90, 28, TRUE);
-    MoveWindow(reloadButton, padding + 334, padding, 90, 28, TRUE);
-    MoveWindow(clearButton, rightX, padding, 110, 28, TRUE);
+    MoveWindow(runButton, padding, padding, 90, 32, TRUE);
+    MoveWindow(uploadButton, padding + 102, padding, 138, 32, TRUE);
+    MoveWindow(saveButton, padding + 252, padding, 90, 32, TRUE);
+    MoveWindow(reloadButton, padding + 354, padding, 90, 32, TRUE);
+    MoveWindow(clearButton, rightX, padding, 118, 32, TRUE);
 
-    MoveWindow(editorBox, padding, paneTop, paneWidth, paneHeight, TRUE);
-    MoveWindow(outputBox, rightX, paneTop, paneWidth, paneHeight, TRUE);
+    MoveWindow(editorBox, padding + panelInset, paneTop + panelInset,
+               topPaneWidth - panelInset * 2, topPaneHeight - panelInset * 2,
+               TRUE);
+    MoveWindow(pipelineOutputBox, rightX + panelInset, paneTop + panelInset,
+               topPaneWidth - panelInset * 2, topPaneHeight - panelInset * 2,
+               TRUE);
+    MoveWindow(registersOutputBox, padding + panelInset,
+               lowerPaneTop + panelInset,
+               lowerColumnWidth - panelInset * 2,
+               lowerPaneHeight - panelInset * 2, TRUE);
+    MoveWindow(instructionOutputBox,
+               padding + lowerColumnWidth + lowerColumnGap + panelInset,
+               lowerPaneTop + panelInset,
+               lowerColumnWidth - panelInset * 2,
+               lowerPaneHeight - panelInset * 2, TRUE);
+    MoveWindow(dataOutputBox,
+               padding + (lowerColumnWidth + lowerColumnGap) * 2 + panelInset,
+               lowerPaneTop + panelInset,
+               lowerColumnWidth - panelInset * 2,
+               lowerPaneHeight - panelInset * 2, TRUE);
 }
 
 static void paintLabels(HWND hwnd)
@@ -252,16 +379,61 @@ static void paintLabels(HWND hwnd)
     RECT rc;
     GetClientRect(hwnd, &rc);
 
-    int padding = 12;
-    int gap = 10;
+    int padding = 16;
+    int gap = 12;
     int width = rc.right - rc.left;
-    int paneWidth = (width - padding * 2 - gap) / 2;
-    int rightX = padding + paneWidth + gap;
+    int height = rc.bottom - rc.top;
+    int paneTop = padding + 48 + 26;
+    int paneHeight = height - paneTop - padding;
+    int topPaneWidth = (width - padding * 2 - gap) / 2;
+    int rightX = padding + topPaneWidth + gap;
+    int topPaneHeight = (paneHeight * 3) / 5;
+    int lowerLabelTop = paneTop + topPaneHeight + gap;
+    int lowerPaneTop = lowerLabelTop + 26;
+    int lowerPaneHeight = height - lowerPaneTop - padding;
+    int lowerWidth = width - padding * 2;
+    int lowerColumnGap = 12;
+    int lowerColumnWidth = (lowerWidth - lowerColumnGap * 2) / 3;
+    RECT editorPanel = { padding, paneTop,
+                         padding + topPaneWidth, paneTop + topPaneHeight };
+    RECT pipelinePanel = { rightX, paneTop,
+                           rightX + topPaneWidth, paneTop + topPaneHeight };
+    RECT registersPanel = { padding, lowerPaneTop,
+                            padding + lowerColumnWidth,
+                            lowerPaneTop + lowerPaneHeight };
+    RECT instructionPanel = {
+        padding + lowerColumnWidth + lowerColumnGap, lowerPaneTop,
+        padding + lowerColumnWidth * 2 + lowerColumnGap,
+        lowerPaneTop + lowerPaneHeight
+    };
+    RECT dataPanel = {
+        padding + (lowerColumnWidth + lowerColumnGap) * 2, lowerPaneTop,
+        padding + lowerWidth, lowerPaneTop + lowerPaneHeight
+    };
 
     SetBkMode(hdc, TRANSPARENT);
-    SelectObject(hdc, GetStockObject(DEFAULT_GUI_FONT));
-    TextOutA(hdc, padding, 48, "Program Editor", 14);
-    TextOutA(hdc, rightX, 48, "Console Output", 14);
+    SelectObject(hdc, labelFont);
+    SetTextColor(hdc, LABEL_COLOR);
+
+    drawPanel(hdc, editorPanel, EDITOR_PANEL_COLOR, EDITOR_ACCENT_COLOR);
+    drawPanel(hdc, pipelinePanel, PIPELINE_PANEL_COLOR, PIPELINE_ACCENT_COLOR);
+    drawPanel(hdc, registersPanel, REGISTERS_PANEL_COLOR, REGISTERS_ACCENT_COLOR);
+    drawPanel(hdc, instructionPanel, INSTRUCTION_PANEL_COLOR,
+              INSTRUCTION_ACCENT_COLOR);
+    drawPanel(hdc, dataPanel, DATA_PANEL_COLOR, DATA_ACCENT_COLOR);
+
+    SetTextColor(hdc, EDITOR_ACCENT_COLOR);
+    TextOutA(hdc, padding, 54, "Program Editor", 14);
+    SetTextColor(hdc, PIPELINE_ACCENT_COLOR);
+    TextOutA(hdc, rightX, 54, "Pipeline Output", 15);
+    SetTextColor(hdc, REGISTERS_ACCENT_COLOR);
+    TextOutA(hdc, padding, lowerLabelTop, "Registers", 9);
+    SetTextColor(hdc, INSTRUCTION_ACCENT_COLOR);
+    TextOutA(hdc, padding + lowerColumnWidth + lowerColumnGap, lowerLabelTop,
+             "Instruction Memory", 18);
+    SetTextColor(hdc, DATA_ACCENT_COLOR);
+    TextOutA(hdc, padding + (lowerColumnWidth + lowerColumnGap) * 2,
+             lowerLabelTop, "Data Memory", 11);
 
     EndPaint(hwnd, &ps);
 }
@@ -270,7 +442,17 @@ static LRESULT CALLBACK windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lP
 {
     switch (msg) {
     case WM_CREATE:
-        fixedFont = CreateFontA(18, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
+        backgroundBrush = CreateSolidBrush(BACKGROUND_COLOR);
+        editBrush = CreateSolidBrush(EDIT_COLOR);
+        uiFont = CreateFontA(18, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
+                             ANSI_CHARSET, OUT_DEFAULT_PRECIS,
+                             CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY,
+                             DEFAULT_PITCH | FF_SWISS, "Segoe UI");
+        labelFont = CreateFontA(18, 0, 0, 0, FW_SEMIBOLD, FALSE, FALSE, FALSE,
+                                ANSI_CHARSET, OUT_DEFAULT_PRECIS,
+                                CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY,
+                                DEFAULT_PITCH | FF_SWISS, "Segoe UI");
+        fixedFont = CreateFontA(17, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
                                 ANSI_CHARSET, OUT_DEFAULT_PRECIS,
                                 CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY,
                                 FIXED_PITCH | FF_MODERN, "Consolas");
@@ -281,11 +463,21 @@ static LRESULT CALLBACK windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lP
         reloadButton = makeButton(hwnd, "Reload", IDC_RELOAD);
         clearButton = makeButton(hwnd, "Clear Output", IDC_CLEAR);
         editorBox = makeEdit(hwnd, IDC_EDITOR, 0);
-        outputBox = makeEdit(hwnd, IDC_OUTPUT, ES_READONLY);
+        pipelineOutputBox = makeEdit(hwnd, IDC_PIPELINE_OUTPUT, ES_READONLY);
+        registersOutputBox = makeEdit(hwnd, IDC_REGISTERS_OUTPUT, ES_READONLY);
+        instructionOutputBox = makeEdit(hwnd, IDC_INSTRUCTION_OUTPUT, ES_READONLY);
+        dataOutputBox = makeEdit(hwnd, IDC_DATA_OUTPUT, ES_READONLY);
 
         loadProgramIntoEditor();
-        SetWindowTextA(outputBox, "Press Run to simulate the program.");
+        setOutputFields("Press Run to simulate the program.", "", "", "");
         return 0;
+
+    case WM_ERASEBKGND: {
+        RECT rc;
+        GetClientRect(hwnd, &rc);
+        FillRect((HDC)wParam, &rc, backgroundBrush);
+        return 1;
+    }
 
     case WM_SIZE:
         layout(hwnd);
@@ -312,14 +504,31 @@ static LRESULT CALLBACK windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lP
             loadProgramIntoEditor();
             return 0;
         case IDC_CLEAR:
-            SetWindowTextA(outputBox, "");
+            setOutputFields("", "", "", "");
             return 0;
         }
         break;
 
+    case WM_CTLCOLORBTN:
+        SetBkColor((HDC)wParam, BACKGROUND_COLOR);
+        return (LRESULT)backgroundBrush;
+
+    case WM_CTLCOLOREDIT:
+        SetTextColor((HDC)wParam, TEXT_COLOR);
+        SetBkColor((HDC)wParam, EDIT_COLOR);
+        return (LRESULT)editBrush;
+
     case WM_DESTROY:
         if (fixedFont)
             DeleteObject(fixedFont);
+        if (uiFont)
+            DeleteObject(uiFont);
+        if (labelFont)
+            DeleteObject(labelFont);
+        if (backgroundBrush)
+            DeleteObject(backgroundBrush);
+        if (editBrush)
+            DeleteObject(editBrush);
         PostQuitMessage(0);
         return 0;
     }
@@ -347,7 +556,7 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prevInstance,
     wc.lpfnWndProc = windowProc;
     wc.hInstance = instance;
     wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-    wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+    wc.hbrBackground = NULL;
     wc.lpszClassName = "PipelineSimulatorGui";
 
     if (!RegisterClassA(&wc))
@@ -356,7 +565,7 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prevInstance,
     HWND hwnd = CreateWindowA(
         wc.lpszClassName, "C Pipeline Simulator",
         WS_OVERLAPPEDWINDOW | WS_VISIBLE,
-        CW_USEDEFAULT, CW_USEDEFAULT, 1100, 700,
+        CW_USEDEFAULT, CW_USEDEFAULT, 1220, 760,
         NULL, NULL, instance, NULL);
 
     if (!hwnd)
