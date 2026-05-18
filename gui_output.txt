@@ -1,0 +1,296 @@
+Parsed instruction: 0x3045 from line: MOVI R1 5
+ 
+Parsed instruction: 0x3083 from line: MOVI R2 3
+ 
+Parsed instruction: 0x0042 from line: ADD R1 R2
+ 
+Parsed instruction: 0xB054 from line: STR R1 20
+ 
+Parsed instruction: 0xA0D4 from line: LDR R3 20
+ 
+Parsed instruction: 0x10C2 from line: SUB R3 R2
+ 
+Parsed instruction: 0x50C7 from line: ANDI R3 7
+ 
+Parsed instruction: 0x6104 from line: EOR R4 R4
+ 
+Parsed instruction: 0x80C1 from line: SLC R3 1
+ 
+Parsed instruction: 0x90C1 from line: SRC R3 1
+ 
+Parsed instruction: 0x4102 from line: BEQZ R4 2
+ 
+Parsed instruction: 0x3163 from line: MOVI R5 99
+ 
+Parsed instruction: 0x3198 from line: MOVI R6 88
+ 
+Parsed instruction: 0x31CA from line: MOVI R7 10
+ 
+Parsed instruction: 0x21C2 from line: MUL R7 R2
+ 
+Parsed instruction: 0xB1D5 from line: STR R7 21
+ 
+Parsed instruction: 0xA215 from line: LDR R8 21 
+Loaded 17 instructions into memory
+
+================ Cycle 1 ================
+PC before cycle: 0 | SREG: 0x00 (C=0 V=0 N=0 S=0 Z=0)
+  [IF] input: PC=0
+  [IF] output: fetched MOVI R1 5, raw=0x3045, pc = 0 | next PC=1
+  [ID] empty: no valid instruction in IF/ID
+  [EX] empty: no valid instruction in ID/EX
+
+================ Cycle 2 ================
+PC before cycle: 1 | SREG: 0x00 (C=0 V=0 N=0 S=0 Z=0)
+  [IF] input: PC=1
+  [IF] output: fetched MOVI R2 3, raw=0x3083, pc = 1 | next PC=2
+  [ID] input: MOVI R1 5, raw=0x3045, pc = 0
+  [ID] output: operand1=R1(0), immediate=5
+  [EX] empty: no valid instruction in ID/EX
+
+================ Cycle 3 ================
+PC before cycle: 2 | SREG: 0x00 (C=0 V=0 N=0 S=0 Z=0)
+  [IF] input: PC=2
+  [IF] output: fetched ADD R1 R2, raw=0x0042, pc = 2 | next PC=3
+  [ID] input: MOVI R2 3, raw=0x3083, pc = 1
+  [ID] output: operand1=R2(0), immediate=3
+  [EX] input: MOVI R1 5, raw=0x3045, pc = 0 | operand1=0 immediate=5
+  [EX]     [REG] R1: 0 -> 5
+MOVI R1 = 5
+
+================ Cycle 4 ================
+PC before cycle: 3 | SREG: 0x00 (C=0 V=0 N=0 S=0 Z=0)
+  [IF] stalled: data hazard, PC remains 3
+  [ID] stalled: data hazard while decoding ADD R1 R2, raw=0x0042, pc = 2 after MOVI R2 3, raw=0x3083, pc = 1 | inserted bubble into EX
+  [EX] input: MOVI R2 3, raw=0x3083, pc = 1 | operand1=0 immediate=3
+  [EX]     [REG] R2: 0 -> 3
+MOVI R2 = 3
+
+================ Cycle 5 ================
+PC before cycle: 3 | SREG: 0x00 (C=0 V=0 N=0 S=0 Z=0)
+  [IF] input: PC=3
+  [IF] output: fetched STR R1 20, raw=0xB054, pc = 3 | next PC=4
+  [ID] input: ADD R1 R2, raw=0x0042, pc = 2
+  [ID] output: operand1=R1(5), operand2=R2(3)
+  [EX] empty: no valid instruction in ID/EX
+
+================ Cycle 6 ================
+PC before cycle: 4 | SREG: 0x00 (C=0 V=0 N=0 S=0 Z=0)
+  [IF] stalled: data hazard, PC remains 4
+  [ID] stalled: data hazard while decoding STR R1 20, raw=0xB054, pc = 3 after ADD R1 R2, raw=0x0042, pc = 2 | inserted bubble into EX
+  [EX] input: ADD R1 R2, raw=0x0042, pc = 2 | operand1=5 operand2=3
+  [EX]     [REG] R1: 5 -> 8
+ADD  R1(5) + R2(3) = 8  | C=0 V=0 N=0 S=0 Z=0
+
+================ Cycle 7 ================
+PC before cycle: 4 | SREG: 0x00 (C=0 V=0 N=0 S=0 Z=0)
+  [IF] input: PC=4
+  [IF] output: fetched LDR R3 20, raw=0xA0D4, pc = 4 | next PC=5
+  [ID] input: STR R1 20, raw=0xB054, pc = 3
+  [ID] output: operand1=R1(8), immediate=20
+  [EX] empty: no valid instruction in ID/EX
+
+================ Cycle 8 ================
+PC before cycle: 5 | SREG: 0x00 (C=0 V=0 N=0 S=0 Z=0)
+  [IF] input: PC=5
+  [IF] output: fetched SUB R3 R2, raw=0x10C2, pc = 5 | next PC=6
+  [ID] input: LDR R3 20, raw=0xA0D4, pc = 4
+  [ID] output: operand1=R3(0), immediate=20
+  [EX] input: STR R1 20, raw=0xB054, pc = 3 | operand1=8 immediate=20
+  [EX]     [MEM] dataMemory[20] <- 8
+STR  MEM[20] = R1(8)
+
+================ Cycle 9 ================
+PC before cycle: 6 | SREG: 0x00 (C=0 V=0 N=0 S=0 Z=0)
+  [IF] stalled: data hazard, PC remains 6
+  [ID] stalled: data hazard while decoding SUB R3 R2, raw=0x10C2, pc = 5 after LDR R3 20, raw=0xA0D4, pc = 4 | inserted bubble into EX
+  [EX] input: LDR R3 20, raw=0xA0D4, pc = 4 | operand1=0 immediate=20
+  [EX]     [REG] R3: 0 -> 8
+LDR  R3 = MEM[20] = 8
+
+================ Cycle 10 ================
+PC before cycle: 6 | SREG: 0x00 (C=0 V=0 N=0 S=0 Z=0)
+  [IF] input: PC=6
+  [IF] output: fetched ANDI R3 7, raw=0x50C7, pc = 6 | next PC=7
+  [ID] input: SUB R3 R2, raw=0x10C2, pc = 5
+  [ID] output: operand1=R3(8), operand2=R2(3)
+  [EX] empty: no valid instruction in ID/EX
+
+================ Cycle 11 ================
+PC before cycle: 7 | SREG: 0x00 (C=0 V=0 N=0 S=0 Z=0)
+  [IF] stalled: data hazard, PC remains 7
+  [ID] stalled: data hazard while decoding ANDI R3 7, raw=0x50C7, pc = 6 after SUB R3 R2, raw=0x10C2, pc = 5 | inserted bubble into EX
+  [EX] input: SUB R3 R2, raw=0x10C2, pc = 5 | operand1=8 operand2=3
+  [EX]     [REG] R3: 8 -> 5
+SUB  R3(8) - R2(3) = 5  | V=0 N=0 S=0 Z=0
+
+================ Cycle 12 ================
+PC before cycle: 7 | SREG: 0x00 (C=0 V=0 N=0 S=0 Z=0)
+  [IF] input: PC=7
+  [IF] output: fetched EOR R4 R4, raw=0x6104, pc = 7 | next PC=8
+  [ID] input: ANDI R3 7, raw=0x50C7, pc = 6
+  [ID] output: operand1=R3(5), immediate=7
+  [EX] empty: no valid instruction in ID/EX
+
+================ Cycle 13 ================
+PC before cycle: 8 | SREG: 0x00 (C=0 V=0 N=0 S=0 Z=0)
+  [IF] input: PC=8
+  [IF] output: fetched SLC R3 1, raw=0x80C1, pc = 8 | next PC=9
+  [ID] input: EOR R4 R4, raw=0x6104, pc = 7
+  [ID] output: operand1=R4(0), operand2=R4(0)
+  [EX] input: ANDI R3 7, raw=0x50C7, pc = 6 | operand1=5 immediate=7
+  [EX]     [REG] R3: 5 -> 5
+ANDI R3(5) & 7 = 5  | N=0 Z=0
+
+================ Cycle 14 ================
+PC before cycle: 9 | SREG: 0x00 (C=0 V=0 N=0 S=0 Z=0)
+  [IF] input: PC=9
+  [IF] output: fetched SRC R3 1, raw=0x90C1, pc = 9 | next PC=10
+  [ID] input: SLC R3 1, raw=0x80C1, pc = 8
+  [ID] output: operand1=R3(5), immediate=1
+  [EX] input: EOR R4 R4, raw=0x6104, pc = 7 | operand1=0 operand2=0
+  [EX]     [REG] R4: 0 -> 0
+EOR  R4(0) ^ R4(0) = 0  | N=0 Z=1
+
+================ Cycle 15 ================
+PC before cycle: 10 | SREG: 0x01 (C=0 V=0 N=0 S=0 Z=1)
+  [IF] stalled: data hazard, PC remains 10
+  [ID] stalled: data hazard while decoding SRC R3 1, raw=0x90C1, pc = 9 after SLC R3 1, raw=0x80C1, pc = 8 | inserted bubble into EX
+  [EX] input: SLC R3 1, raw=0x80C1, pc = 8 | operand1=5 immediate=1
+  [EX]     [REG] R3: 5 -> 10
+SLC  R3(0x05) <<< 1 = 0x0A  | N=0 Z=0
+
+================ Cycle 16 ================
+PC before cycle: 10 | SREG: 0x00 (C=0 V=0 N=0 S=0 Z=0)
+  [IF] input: PC=10
+  [IF] output: fetched BEQZ R4 2, raw=0x4102, pc = 10 | next PC=11
+  [ID] input: SRC R3 1, raw=0x90C1, pc = 9
+  [ID] output: operand1=R3(10), immediate=1
+  [EX] empty: no valid instruction in ID/EX
+
+================ Cycle 17 ================
+PC before cycle: 11 | SREG: 0x00 (C=0 V=0 N=0 S=0 Z=0)
+  [IF] input: PC=11
+  [IF] output: fetched MOVI R5 -29, raw=0x3163, pc = 11 | next PC=12
+  [ID] input: BEQZ R4 2, raw=0x4102, pc = 10
+  [ID] output: operand1=R4(0), immediate=2
+  [EX] input: SRC R3 1, raw=0x90C1, pc = 9 | operand1=10 immediate=1
+  [EX]     [REG] R3: 10 -> 5
+SRC  R3(0x0A) >>> 1 = 0x05  | N=0 Z=0
+
+================ Cycle 18 ================
+PC before cycle: 12 | SREG: 0x00 (C=0 V=0 N=0 S=0 Z=0)
+  [IF] input: PC=12
+  [IF] output: fetched MOVI R6 24, raw=0x3198, pc = 12 | next PC=13
+  [ID] input: MOVI R5 -29, raw=0x3163, pc = 11
+  [ID] output: operand1=R5(0), immediate=-29
+  [EX] input: BEQZ R4 2, raw=0x4102, pc = 10 | operand1=0 immediate=2
+  [EX] BEQZ R4(0) == 0  →  TAKEN, PC = 13
+  [CTRL] branch/jump taken: PC <- 13, flushed IF/ID and ID/EX
+
+================ Cycle 19 ================
+PC before cycle: 13 | SREG: 0x00 (C=0 V=0 N=0 S=0 Z=0)
+  [IF] input: PC=13
+  [IF] output: fetched MOVI R7 10, raw=0x31CA, pc = 13 | next PC=14
+  [ID] empty: no valid instruction in IF/ID
+  [EX] empty: no valid instruction in ID/EX
+
+================ Cycle 20 ================
+PC before cycle: 14 | SREG: 0x00 (C=0 V=0 N=0 S=0 Z=0)
+  [IF] input: PC=14
+  [IF] output: fetched MUL R7 R2, raw=0x21C2, pc = 14 | next PC=15
+  [ID] input: MOVI R7 10, raw=0x31CA, pc = 13
+  [ID] output: operand1=R7(0), immediate=10
+  [EX] empty: no valid instruction in ID/EX
+
+================ Cycle 21 ================
+PC before cycle: 15 | SREG: 0x00 (C=0 V=0 N=0 S=0 Z=0)
+  [IF] stalled: data hazard, PC remains 15
+  [ID] stalled: data hazard while decoding MUL R7 R2, raw=0x21C2, pc = 14 after MOVI R7 10, raw=0x31CA, pc = 13 | inserted bubble into EX
+  [EX] input: MOVI R7 10, raw=0x31CA, pc = 13 | operand1=0 immediate=10
+  [EX]     [REG] R7: 0 -> 10
+MOVI R7 = 10
+
+================ Cycle 22 ================
+PC before cycle: 15 | SREG: 0x00 (C=0 V=0 N=0 S=0 Z=0)
+  [IF] input: PC=15
+  [IF] output: fetched STR R7 21, raw=0xB1D5, pc = 15 | next PC=16
+  [ID] input: MUL R7 R2, raw=0x21C2, pc = 14
+  [ID] output: operand1=R7(10), operand2=R2(3)
+  [EX] empty: no valid instruction in ID/EX
+
+================ Cycle 23 ================
+PC before cycle: 16 | SREG: 0x00 (C=0 V=0 N=0 S=0 Z=0)
+  [IF] stalled: data hazard, PC remains 16
+  [ID] stalled: data hazard while decoding STR R7 21, raw=0xB1D5, pc = 15 after MUL R7 R2, raw=0x21C2, pc = 14 | inserted bubble into EX
+  [EX] input: MUL R7 R2, raw=0x21C2, pc = 14 | operand1=10 operand2=3
+  [EX]     [REG] R7: 10 -> 30
+MUL  R7(10) * R2(3) = 30  | N=0 Z=0
+
+================ Cycle 24 ================
+PC before cycle: 16 | SREG: 0x00 (C=0 V=0 N=0 S=0 Z=0)
+  [IF] input: PC=16
+  [IF] output: fetched LDR R8 21, raw=0xA215, pc = 16 | next PC=17
+  [ID] input: STR R7 21, raw=0xB1D5, pc = 15
+  [ID] output: operand1=R7(30), immediate=21
+  [EX] empty: no valid instruction in ID/EX
+
+================ Cycle 25 ================
+PC before cycle: 17 | SREG: 0x00 (C=0 V=0 N=0 S=0 Z=0)
+  [IF] empty: PC=17 is past loaded instruction count 17
+  [ID] input: LDR R8 21, raw=0xA215, pc = 16
+  [ID] output: operand1=R8(0), immediate=21
+  [EX] input: STR R7 21, raw=0xB1D5, pc = 15 | operand1=30 immediate=21
+  [EX]     [MEM] dataMemory[21] <- 30
+STR  MEM[21] = R7(30)
+
+================ Cycle 26 ================
+PC before cycle: 17 | SREG: 0x00 (C=0 V=0 N=0 S=0 Z=0)
+  [IF] empty: PC=17 is past loaded instruction count 17
+  [ID] empty: no valid instruction in IF/ID
+  [EX] input: LDR R8 21, raw=0xA215, pc = 16 | operand1=0 immediate=21
+  [EX]     [REG] R8: 0 -> 30
+LDR  R8 = MEM[21] = 30
+
+===== Registers =====
+R0  =    0    R1  =    8    R2  =    3    R3  =    5
+R4  =    0    R5  =    0    R6  =    0    R7  =   30
+R8  =   30    R9  =    0    R10 =    0    R11 =    0
+R12 =    0    R13 =    0    R14 =    0    R15 =    0
+R16 =    0    R17 =    0    R18 =    0    R19 =    0
+R20 =    0    R21 =    0    R22 =    0    R23 =    0
+R24 =    0    R25 =    0    R26 =    0    R27 =    0
+R28 =    0    R29 =    0    R30 =    0    R31 =    0
+R32 =    0    R33 =    0    R34 =    0    R35 =    0
+R36 =    0    R37 =    0    R38 =    0    R39 =    0
+R40 =    0    R41 =    0    R42 =    0    R43 =    0
+R44 =    0    R45 =    0    R46 =    0    R47 =    0
+R48 =    0    R49 =    0    R50 =    0    R51 =    0
+R52 =    0    R53 =    0    R54 =    0    R55 =    0
+R56 =    0    R57 =    0    R58 =    0    R59 =    0
+R60 =    0    R61 =    0    R62 =    0    R63 =    0
+PC   = 17
+SREG = 0x00 (C=0 V=0 N=0 S=0 Z=0)
+
+===== Instruction Memory =====
+[0] = 12357
+[1] = 12419
+[2] = 66
+[3] = 45140
+[4] = 41172
+[5] = 4290
+[6] = 20679
+[7] = 24836
+[8] = 32961
+[9] = 37057
+[10] = 16642
+[11] = 12643
+[12] = 12696
+[13] = 12746
+[14] = 8642
+[15] = 45525
+[16] = 41493
+
+===== Data Memory =====
+[20] = 8
+[21] = 30
