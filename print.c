@@ -226,11 +226,22 @@ void printRegisters(CPU *cpu)
 void printInstructionMemory(CPU *cpu)
 {
     printf("\n===== Instruction Memory =====\n");
+    printf("Index | Binary           | Hex    | Decimal\n");
+    printf("------+------------------+--------+--------\n");
 
     for (int i = 0; i < cpu->instructionCount; i++)
     {
+        uint16_t value = instructionMemory[i];
+        char binary[17];
 
-        printf("[%d] = %u\n", i, instructionMemory[i]);
+        for (int bit = 15; bit >= 0; bit--)
+        {
+            binary[15 - bit] = (value & (1u << bit)) ? '1' : '0';
+        }
+        binary[16] = '\0';
+
+        printf("[%3d] | %s | 0x%04X | %5u\n",
+               i, binary, value, value);
     }
 }
 

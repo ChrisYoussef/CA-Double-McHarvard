@@ -1030,7 +1030,7 @@ static void paintLabels(HWND hwnd)
     drawSection(hdc, editorPanel, "Program Editor");
     drawSection(hdc, pipelinePanel, "Pipeline Output");
     drawSection(hdc, registersPanel, "Registers");
-    drawSection(hdc, instructionPanel, "Instruction Memory");
+    drawSection(hdc, instructionPanel, "Instruction Memory - Binary / Hex / Decimal");
     drawSection(hdc, dataPanel, "Data Memory");
     drawTextFieldShell(hdc, ifStageShell);
     drawTextFieldShell(hdc, idStageShell);
