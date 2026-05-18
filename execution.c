@@ -1,21 +1,3 @@
-/*
- * execute.c – Package 3: Double Big Harvard combo large arithmetic shifts
- * CSEN601 – Spring 26
- *
- * Contains the per-opcode execute functions and the main dispatcher:
- *
- *   executeADD()   executeANDI()   executeSRC()
- *   executeSUB()   executeEOR()    executeBEQZ()
- *   executeMUL()   executeSLC()    executeBR()
- *   executeMOVI()  executeLDR()    executeSTR()
- *
- *   executeInstruction()  ← dispatches to the functions above
- *
- * Flag helpers (setFlag, getFlag, updateNZFlags, updateAddFlags,
- * updateSubFlags, updateSignFlag) live in flags.c.
- *
- * Memory helpers (loadData, storeData) live in memory.c.
- */
 
 #include "cpu.h"
 #include <stdint.h>

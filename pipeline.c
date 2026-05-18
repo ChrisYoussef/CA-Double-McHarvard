@@ -1,19 +1,5 @@
 
 
-/************************************************************
- * pipeline.c – Package 3: Double Big Harvard combo large arithmetic shifts
- * CSEN601 – Spring 26
- *
- * Implements the main pipeline control flow and stage functions.
- * Each stage function corresponds to one of the three pipeline stages:
- *   fetchStage()   – IF stage
- *   decodeStage()  – ID stage
- *   executeStage() – EX stage
- *
- * The main pipeline loop is implemented in runPipeline(), which calls
- * simulateCycle() repeatedly until all instructions have been processed.
- ************************************************************/
-
 #include "cpu.h"
 #include <stdio.h>
 #include <string.h>

@@ -3,8 +3,6 @@
 
 
 
-
-
 int detectDataHazard(IF_ID_Register *if_id, ID_EX_Register *id_ex) {
     if (!if_id->valid || !id_ex->valid)
         return 0;

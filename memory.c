@@ -1,23 +1,3 @@
-/*
- * memory.c – Package 3: Double Big Harvard combo large arithmetic shifts
- * CSEN601 – Spring 26
- *
- * Person 5 responsibility: Memory + PC Utilities
- *
- * The two memory arrays are defined here (not inside the CPU struct).
- * They are declared extern in cpu.h so all other files can access them.
- *
- * Functions implemented:
- *   initCPU()
- *   fetchInstruction()
- *   loadData()
- *   storeData()
- *   getPC()
- *   setPC()
- *   incrementPC()
- *   validateInstructionAddress()
- *   validateDataAddress()
- */
 
  #include "cpu.h"
  #include <stdint.h>
